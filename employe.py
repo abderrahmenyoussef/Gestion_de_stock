@@ -51,7 +51,7 @@ class Employe:
 
         reche_option=ttk.Combobox(reche_Frame,
                                   textvariable=self.var_rchercher_type,
-                                  values=("Nom","Prenom","Email","Contact"),
+                                  values=("Nom","Email","Contact"),
                                   font=("times new roman",20),
                                   state="r",
                                   justify=CENTER)
@@ -64,6 +64,7 @@ class Employe:
                          bg="lightyellow").place(x=235,y=10,width=200)
 
         recherche= CTkButton(master=reche_Frame,
+                              command=self.rechrche,
                               text="Rechercher",
                               text_color="white",
                               fg_color="#226D68",
@@ -221,6 +222,7 @@ class Employe:
                                     height=40) 
         self.ajout_btn.place(x=420,y=390)
         self.modifier_btn = CTkButton(master=self.root,
+                                    command=self.modifier,  
                                     state="disabled",
                                     text="Modifier",
                                     font=("times new roman",20,"bold"),
@@ -232,6 +234,7 @@ class Employe:
                                     height=40) 
         self.modifier_btn.place(x=600,y=390)
         self.supprimer_btn = CTkButton(master=self.root,
+                                    command=self.supprimer,
                                     state="disabled",   
                                     text="Supprimer",
                                     font=("times new roman",20,"bold"),
@@ -243,6 +246,7 @@ class Employe:
                                     height=40) 
         self.supprimer_btn.place(x=780,y=390)
         reni_btn = CTkButton(master=self.root,
+                                    command=self.rein,
                                     text="Reinitialiser",
                                     font=("times new roman",20,"bold"),
                                     text_color="black",
@@ -309,7 +313,7 @@ class Employe:
         cur=con.cursor()
         try:
             if self.var_emplo_id.get()=="" or self.var_password.get()=="" or self.var_type.get()=="" :
-                messagebox.showerror("Erreur", "Veuillez mettre un ID, password et type")
+                messagebox.showerror("Erreur", "Veillez mettre un ID, password et type")
             else :
                 cur.execute("select * from employe where ID=?",(self.var_emplo_id.get(),))    
                 row = cur.fetchone()
@@ -330,6 +334,7 @@ class Employe:
                                  self.var_salaire.get()))
                     con.commit()
                     self.afficher()
+                    self.rein()
                     messagebox.showinfo("Succés","Ajout effectué avec succés")
 
         except Exception as ex:
@@ -369,6 +374,89 @@ class Employe:
         self.txt_adresse.delete("1.0",END),
         self.txt_adresse.insert(END,row[9])
         self.var_salaire.set(row[10])
+
+
+    def modifier(self):   
+        con=sqlite3.connect(database=r"C:\Users\abdou\Desktop\Gestion_de_stock_et_caisse_enregistreuse\Données\magasinbase.db")
+        cur=con.cursor()
+        try:
+            cur.execute("update employe set Nom=? ,Email=? ,Sexe=? ,Contact=? ,Naissance=? ,Adhésion=? ,Password=? ,Type=? ,Adresse=? ,Salaire=? where ID=? ",
+                        (
+                                 self.var_nom.get(),
+                                 self.var_email.get(),
+                                 self.var_sexe.get(),
+                                 self.var_contact.get(),
+                                 self.var_naissance.get(),
+                                 self.var_adhesion.get(),
+                                 self.var_password.get(),
+                                 self.var_type.get(),
+                                 self.txt_adresse.get("1.0",END),
+                                 self.var_salaire.get(),
+                                 self.var_emplo_id.get(),
+                                 ))
+            con.commit()
+            self.afficher()
+            self.rein()
+            messagebox.showinfo("Succés","Modification effectué avec succés")
+
+        except Exception as ex:
+            messagebox.showerror("Erreur",f"Erreur de connexion {str(ex)}")     
+
+
+    def supprimer(self):
+        con=sqlite3.connect(database=r"C:\Users\abdou\Desktop\Gestion_de_stock_et_caisse_enregistreuse\Données\magasinbase.db")
+        cur=con.cursor()
+
+        try:
+            op=messagebox.askyesno("Confirmer","Voulez-vous vraiment supprimer?")
+            if op==True:
+                cur.execute("delete from employe where ID=?",(self.var_emplo_id.get(),))
+                con.commit()
+                self.afficher()
+                self.rein()
+                messagebox.showinfo("Succés","Suppression effectuée")
+
+        except Exception as ex:
+            messagebox.showerror("Erreur",f"Erreur de connexion {str(ex)}")  
+
+    def rein(self):
+                                 self.var_nom.set("")
+                                 self.var_email.set("")
+                                 self.var_sexe.set("Homme")
+                                 self.var_contact.set("")
+                                 self.var_naissance.set("")
+                                 self.var_adhesion.set("")
+                                 self.var_password.set("")
+                                 self.var_type.set("Admin")
+                                 self.txt_adresse.delete("1.0",END)
+                                 self.var_salaire.set("")
+                                 self.var_emplo_id.set("")    
+                                 self.var_rchercher_txt.set("")   
+                                 self.var_rchercher_type.set("nom")          
+    
+
+    def rechrche(self):
+        con=sqlite3.connect(database=r"C:\Users\abdou\Desktop\Gestion_de_stock_et_caisse_enregistreuse\Données\magasinbase.db")
+        cur=con.cursor()
+
+        try:
+             
+             if self.var_rchercher_txt.get()=="":
+                  messagebox.showerror("Erreur","Veillez saisir dans le champ de recherche")
+             else :
+                  cur.execute("select * from employe where "+self.var_rchercher_type.get()+" LIKE '%"+self.var_rchercher_txt.get()+"%'")  
+                  rows=cur.fetchall()
+                  if len(rows)!=0:
+                       self.employelist.delete(*self.employelist.get_children())   
+                       for row in rows :
+                            self.employelist.insert("",END,values=row)
+                  else :
+                       messagebox.showerror("Erreur","Aucun resultat trouvé")          
+             
+
+         
+        except Exception as ex:
+            messagebox.showerror("Erreur",f"Erreur de connexion {str(ex)}")  
 
 
 
