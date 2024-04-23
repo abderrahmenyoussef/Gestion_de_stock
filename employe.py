@@ -432,7 +432,11 @@ class Employe:
                                  self.var_salaire.set("")
                                  self.var_emplo_id.set("")    
                                  self.var_rchercher_txt.set("")   
-                                 self.var_rchercher_type.set("nom")          
+                                 self.var_rchercher_type.set("nom")  
+                                 self.txt_empid.config(state="normal")    
+                                 self.ajout_btn.configure(state="normal")   
+                                 self.modifier_btn.configure(state="disabled") 
+                                 self.supprimer_btn.configure(state="disabled")
     
 
     def rechrche(self):
